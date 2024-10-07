@@ -1,0 +1,39 @@
+services:
+  webapp:
+    depends_on:
+      database:
+        condition: service_healthy
+    image: webapp:latest
+    hostname: "webapp"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./database:/app/database
+    environment:
+      MYSQL_URL: mysql://root@database:3306/animals
+    links:
+      - database:mysql
+  tester:
+    depends_on:
+      webapp:
+        condition: service_started
+    image: webapp:latest
+    command: yarn test
+    environment:
+      API_URL: "http://webapp:3000"
+  database:
+    image: mysql
+    hostname: "database"
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 2
+      start_period: 0s
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+volumes:
+  database:
