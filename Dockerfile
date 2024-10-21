@@ -14,3 +14,4 @@ COPY ./ ./
 
 CMD yarn start
 
+
